@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "whisper-bot"
+version = "0.1.0"
+description = ""
+authors = ["Pietro Lesci <pietrolesci@outlook.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyrogram = "^2.0.93"
+flake8 = "^6.0.0"
+black = "^22.12.0"
+tgcrypto = "^1.2.5"
+uvloop = "^0.17.0"
+lightning = "^1.8.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
