@@ -1,21 +1,22 @@
 import os
 
-# import uvloop
+import uvloop
 import subprocess
 import tempfile
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-# uvloop.install()
+uvloop.install()
 
 
 class SimpleSpeechRecognizer:
-    def __init__(self) -> None:
-        self.whisper_home = "./whisper.cpp"
-        self.model_size = "small"
+    def __init__(self, whisper_home: str, model_size: str) -> None:
+        self.whisper_home = whisper_home
+        self.model_size = model_size
 
     def convert_to_audio(self, source_file_path: str) -> str:
+        """Converts `.ogg` file to `.wav` (16kHz) using `ffmpeg`."""
 
         wav_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
 
@@ -28,6 +29,8 @@ class SimpleSpeechRecognizer:
         return wav_file.name
 
     def recognize(self, audio_file_path: str) -> str:
+        """Runs Whisper C++ implementation."""
+
         assert os.path.exists(
             audio_file_path
         ), f"File does not exist: {audio_file_path}"
@@ -72,7 +75,7 @@ class SimpleSpeechRecognizer:
 
 if __name__ == "__main__":
 
-    transcriber = SimpleSpeechRecognizer()
+    transcriber = SimpleSpeechRecognizer(whisper_home="./whisper.cpp", model_size="small")
     api_id = os.environ.get("API_ID")
     api_hash = os.environ.get("API_HASH")
     bot_token = os.environ.get("BOT_TOKEN")

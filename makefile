@@ -11,6 +11,7 @@ lint:
 	flake8 $(sources)
 
 setup:
-	git clone https://github.com/ggerganov/whisper.cpp.git
-	cd whisper.cpp
-	make small
+	conda create -n whisper-bot python==3.8 -y && conda activate whisper-bot
+	pip install -r ./requirements.txt
+	# git clone https://github.com/ggerganov/whisper.cpp.git
+	cd whisper.cpp && make small
