@@ -9,6 +9,8 @@ Create conda environment and install packages
 ```bash
 conda create -n whisper-bot python==3.8 -y
 conda activate whisper-bot
+# install this independently as on lightning cloud it will already be there
+pip install lightning  
 pip install -r ./requirements.txt
 ```
 

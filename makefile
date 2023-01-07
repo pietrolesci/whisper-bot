@@ -11,7 +11,6 @@ lint:
 	flake8 $(sources)
 
 setup:
-	conda create -n whisper-bot python==3.8 -y && conda activate whisper-bot
-	pip install -r ./requirements.txt
-	# git clone https://github.com/ggerganov/whisper.cpp.git
+	conda create -n whisper-bot python==3.8 -y && conda activate whisper-bot && pip install lightning && pip install -r ./requirements.txt
+	git clone https://github.com/ggerganov/whisper.cpp.git
 	cd whisper.cpp && make small
