@@ -81,7 +81,6 @@ class AnotherSpeechRecognizer:
         self.model_size = model_size
         self.device = device
         self.model = whisper.load_model(model_size, in_memory=True, device=torch.device(device), download_root="./whisper")
-        # self.decode_options = whisper.DecodingOptions(language="it")
 
     def __call__(self, source_file_path: str) -> str:
         start_time = time.perf_counter()
