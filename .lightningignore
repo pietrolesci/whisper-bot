@@ -2,6 +2,3 @@ venv/
 scripts/
 whisper.cpp/
 .env
-my_bot*
-poetry*
-pyproject*

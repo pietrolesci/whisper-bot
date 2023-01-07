@@ -1,9 +1,11 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
+import os
+
 # import uvloop
 import subprocess
 import tempfile
-import os
+
+from pyrogram import Client, filters
+from pyrogram.types import Message
 
 # uvloop.install()
 
@@ -18,12 +20,17 @@ class SimpleSpeechRecognizer:
         wav_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
 
         # TODO: Handle exceptions from `ffmpeg`
-        subprocess.call(f"ffmpeg -i {source_file_path} -y -ar 16000 -ac 1 -c:a pcm_s16le {wav_file.name}", shell=True)
+        subprocess.call(
+            f"ffmpeg -i {source_file_path} -y -ar 16000 -ac 1 -c:a pcm_s16le {wav_file.name}",
+            shell=True,
+        )
 
         return wav_file.name
 
     def recognize(self, audio_file_path: str) -> str:
-        assert os.path.exists(audio_file_path), f"File does not exist: {audio_file_path}"
+        assert os.path.exists(
+            audio_file_path
+        ), f"File does not exist: {audio_file_path}"
 
         output_txt = f"{audio_file_path}.txt"
 
@@ -52,14 +59,14 @@ class SimpleSpeechRecognizer:
     def __call__(self, source_file_path: str) -> str:
         # convert to wav
         audio_file_path = self.convert_to_audio(source_file_path)
-        
+
         # transcribe
         transcription = self.recognize(audio_file_path)
-        
+
         # clean
         os.remove(audio_file_path)
         os.remove(source_file_path)
-        
+
         return transcription
 
 

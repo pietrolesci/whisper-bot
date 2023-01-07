@@ -1,11 +1,11 @@
-from lightning.app.components import TracerPythonScript
-import lightning as L
 from dataclasses import dataclass
+
+import lightning as L
+from lightning.app.components import TracerPythonScript
 
 
 @dataclass
 class CustomBuildConfig(L.BuildConfig):
-
     def build_commands(self):
         return [
             "sudo apt-get update",
@@ -15,8 +15,8 @@ class CustomBuildConfig(L.BuildConfig):
             "cd ..",
         ]
 
-class SpeechRecognizerWork(TracerPythonScript):
 
+class SpeechRecognizerWork(TracerPythonScript):
     def __init__(self, script_path, cloud_compute):
         super().__init__(
             script_path=script_path,
@@ -27,6 +27,5 @@ class SpeechRecognizerWork(TracerPythonScript):
         )
 
 
-
-component = SpeechRecognizerWork(script_path="run.py", cloud_compute="cpu-medium")    
+component = SpeechRecognizerWork(script_path="run.py", cloud_compute="cpu-medium")
 app = L.LightningApp(component, flow_cloud_compute=L.CloudCompute("default"))
