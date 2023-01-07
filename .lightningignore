@@ -2,4 +2,4 @@ venv/
 scripts/
 whisper.cpp/
 .env
-whisper/
+whisper_model/

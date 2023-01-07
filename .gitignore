@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 *.session
 whisper.cpp
-whisper
+whisper_model
