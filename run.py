@@ -11,9 +11,11 @@ uvloop.install()
 
 
 class SimpleSpeechRecognizer:
-    def __init__(self, whisper_home: str, model_size: str) -> None:
+    def __init__(self, whisper_home: str, model_size: str, n_threads: int = 4, n_proc: int = 1) -> None:
         self.whisper_home = whisper_home
         self.model_size = model_size
+        self.n_threads = n_threads
+        self.n_proc = n_proc
 
     def convert_to_audio(self, source_file_path: str) -> str:
         """Converts `.ogg` file to `.wav` (16kHz) using `ffmpeg`."""
@@ -41,12 +43,13 @@ class SimpleSpeechRecognizer:
             f"{self.whisper_home}/main",
             f"-m {self.whisper_home}/models/ggml-{self.model_size}.bin",
             audio_file_path,
-            # "--print-colors",
             "--language",
             "auto",
             "--no-timestamps",
             "--threads",
-            "8",
+            self.n_threads,
+            "--processors",
+            self.n_proc,
             "--output-txt",
         ]
 
@@ -75,7 +78,12 @@ class SimpleSpeechRecognizer:
 
 if __name__ == "__main__":
 
-    transcriber = SimpleSpeechRecognizer(whisper_home="./whisper.cpp", model_size="small")
+    transcriber = SimpleSpeechRecognizer(
+        whisper_home="./whisper.cpp", 
+        model_size="small",
+        n_threads=32,
+        n_proc=1,
+    )
     api_id = os.environ.get("API_ID")
     api_hash = os.environ.get("API_HASH")
     bot_token = os.environ.get("BOT_TOKEN")

@@ -27,5 +27,5 @@ class SpeechRecognizerWork(TracerPythonScript):
         )
 
 
-component = SpeechRecognizerWork(script_path="run.py", cloud_compute="cpu-medium")
+component = SpeechRecognizerWork(script_path="run.py", cloud_compute="default")
 app = L.LightningApp(component, flow_cloud_compute=L.CloudCompute("default"))
