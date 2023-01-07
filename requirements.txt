@@ -1,4 +1,4 @@
-pyrogram
-tgcrypto
-uvloop
-git+https://github.com/openai/whisper.git
+# pyrogram
+# tgcrypto
+# uvloop
+# git+https://github.com/openai/whisper.git
