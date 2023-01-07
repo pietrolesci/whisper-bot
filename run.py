@@ -3,10 +3,11 @@ import os
 import uvloop
 import subprocess
 import tempfile
-
+import time
 from pyrogram import Client, filters
 from pyrogram.types import Message
-
+import whisper
+import torch
 uvloop.install()
 
 
@@ -44,12 +45,10 @@ class SimpleSpeechRecognizer:
             f"-m {self.whisper_home}/models/ggml-{self.model_size}.bin",
             audio_file_path,
             "--language",
-            "auto",
+            "it",
             "--no-timestamps",
-            "--threads",
-            self.n_threads,
-            "--processors",
-            self.n_proc,
+            f"--threads {self.n_threads}",
+            f"--processors {self.n_proc}",
             "--output-txt",
         ]
 
@@ -67,23 +66,42 @@ class SimpleSpeechRecognizer:
         audio_file_path = self.convert_to_audio(source_file_path)
 
         # transcribe
+        start_time = time.perf_counter()
         transcription = self.recognize(audio_file_path)
+        end_time = time.perf_counter()
 
-        # clean
         os.remove(audio_file_path)
-        os.remove(source_file_path)
 
-        return transcription
+        return transcription, end_time - start_time
+
+
+class AnotherSpeechRecognizer:
+
+    def __init__(self, model_size: str, device: str = "cpu") -> None:
+        self.model_size = model_size
+        self.device = device
+        self.model = whisper.load_model(model_size, in_memory=True, device=torch.device(device), download_root="./whisper")
+        # self.decode_options = whisper.DecodingOptions(language="it")
+
+    def __call__(self, source_file_path: str) -> str:
+        start_time = time.perf_counter()
+        transcription =  whisper.transcribe(self.model, audio=source_file_path, language="it")["text"]
+        end_time = time.perf_counter()
+
+        return transcription, end_time - start_time
 
 
 if __name__ == "__main__":
 
-    transcriber = SimpleSpeechRecognizer(
-        whisper_home="./whisper.cpp", 
-        model_size="small",
-        n_threads=32,
-        n_proc=1,
-    )
+    # transcriber = SimpleSpeechRecognizer(
+    #     whisper_home="./whisper.cpp", 
+    #     model_size="small",
+    #     n_threads=4,
+    #     n_proc=1,
+    # )
+
+    transcriber = AnotherSpeechRecognizer("small")
+    
     api_id = os.environ.get("API_ID")
     api_hash = os.environ.get("API_HASH")
     bot_token = os.environ.get("BOT_TOKEN")
@@ -97,8 +115,15 @@ if __name__ == "__main__":
     @app.on_message(filters.voice & filters.private)
     async def echo(client: Client, message: Message):
         audio_file_path = await message.download(f"audio_{message.voice.file_id}.ogg")
-        transcription = transcriber(audio_file_path)
-        print(transcription)
-        await message.reply(transcription)
+        
+        transcription, runtime = transcriber(audio_file_path)
+        if transcription is not None and len(transcription) > 0:
+            result = f"Processato in {round(runtime, 2)} secondi.\nTrascrizione:\n\n{transcription}"
+        else:
+            result = "Il file audio è vuoto o troppo breve. Nessun risultato"
+
+        os.remove(audio_file_path)
+
+        await message.reply(result)
 
     app.run()

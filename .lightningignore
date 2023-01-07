@@ -2,3 +2,4 @@ venv/
 scripts/
 whisper.cpp/
 .env
+whisper/
