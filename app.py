@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 import lightning as L
-from lightning.app.components import TracerPythonScript, AutoScaler
+from lightning.app.components import TracerPythonScript
 
 
 @dataclass
@@ -10,9 +10,9 @@ class CustomBuildConfig(L.BuildConfig):
         return [
             "sudo apt-get update",
             "sudo apt-get install -y ffmpeg libmagic1",
-            "git clone https://github.com/ggerganov/whisper.cpp.git",
-            "cd ./whisper.cpp && make small",
-            "cd ..",
+            # "git clone https://github.com/ggerganov/whisper.cpp.git",
+            # "cd ./whisper.cpp && make small",
+            # "cd ..",
         ]
 
 
@@ -22,7 +22,12 @@ class SpeechRecognizerWork(TracerPythonScript):
             script_path=script_path,
             parallel=True,
             cloud_compute=cloud_compute,
-            cloud_build_config=CustomBuildConfig(requirements=[]),
+            cloud_build_config=CustomBuildConfig(requirements=[
+                "pyrogram",
+                "tgcrypto",
+                "uvloop",
+                "git+https://github.com/openai/whisper.git",
+            ]),
             raise_exception=False,
         )
 
