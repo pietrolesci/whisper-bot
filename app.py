@@ -1,23 +1,16 @@
-import lightning as L
 import os
-from pyrogram import Client, filters
-from pyrogram.types import Message
-import uvloop
-from lightning.app.utilities.app_helpers import Logger
-from lightning.app.components.serve import PythonServer, Text
-from lightning.app.frontend import StaticWebFrontend
-import torch
-from pydantic import BaseModel
 import time
-import whisper
 from dataclasses import dataclass
 from typing import List
 
-logger = Logger(__name__)
+import lightning as L
+import uvloop
+import whisper
+from lightning.app.utilities.app_helpers import Logger
+from pyrogram import Client, filters
+from pyrogram.types import Message
 
-# class ModelPrediction(BaseModel):
-#     text: str
-#     runtime: float
+logger = Logger(__name__)
 
 
 @dataclass
@@ -33,22 +26,22 @@ class TelegramBot(L.LightningWork):
     def __init__(self, cloud_compute: L.CloudCompute):
         super().__init__(
             cloud_compute=cloud_compute,
-            raise_exception=False,
+            raise_exception=True,
             parallel=True,
             cloud_build_config=CustomBuildConfig(
-                requirements=[
-                    "pyrogram",
-                    "tgcrypto",
-                    "uvloop",
-                    "git+https://github.com/openai/whisper.git",
-                ]
+                # requirements=[
+                #     "pyrogram",
+                #     "tgcrypto",
+                #     "uvloop",
+                #     "git+https://github.com/openai/whisper.git",
+                # ]
             ),
         )
 
         self.api_id = os.environ.get("API_ID")
         self.api_hash = os.environ.get("API_HASH")
         self.bot_token = os.environ.get("BOT_TOKEN")
-        self._model = whisper.load_model("small", in_memory=True, download_root="./whisper_model", device="cpu")
+        self._model = None  # if initialized here it does not work with Redis error or Error Code -9
 
     def predict(self, audio_file_path: str) -> str:
         start_time = time.perf_counter()
@@ -64,6 +57,10 @@ class TelegramBot(L.LightningWork):
         return transcription
 
     def run(self):
+
+        if self._model is None:
+            # TODO: why do I need to initialize here?
+            self._model = whisper.load_model("small", in_memory=True, device="cpu")
 
         uvloop.install()
 
@@ -91,33 +88,6 @@ class TelegramBot(L.LightningWork):
         app.run()
 
 
-# class PyTorchServer(PythonServer):
-#     def setup(self):
-#         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-#         self._model = whisper.load_model("small", in_memory=True, download_root="./whisper_model", device=self._device)
-
-#     def predict(self, request) -> ModelPrediction:
-#         start_time = time.perf_counter()
-#         transcription =  whisper.transcribe(self._model, audio=request, language="it")["text"]
-#         end_time = time.perf_counter()
-
-#         return ModelPrediction(text=transcription, runtime=end_time - start_time)
-
-#     def configure_layout(self) -> StaticWebFrontend:
-#         return StaticWebFrontend("model_endpoint")
-
-
-# class LitApp(L.LightningFlow):
-#     def __init__(self) -> None:
-#         super().__init__()
-#         self.telegram_bot = TelegramBot(L.CloudCompute("cpu-medium", spot=True))
-#         self.model_endpoint = PyTorchServer(input_type=Text, output_type=ModelPrediction)
-
-#     def run(self):
-#         self.telegram_bot.run()
-
-
 telegram_bot = TelegramBot(L.CloudCompute("cpu-medium"))
-# pytorch_server =  PyTorchServer(input_type=Text, output_type=ModelPrediction)
 
-app = L.LightningApp(telegram_bot, log_level="info", )
+app = L.LightningApp(telegram_bot, log_level="info")
