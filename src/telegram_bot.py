@@ -8,7 +8,6 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from lightning.app.storage import Drive
 import requests
-import tempfile
 from pathlib import Path
 
 
@@ -30,7 +29,7 @@ class TelegramBot(L.LightningWork):
         self.bot_token = os.environ.get("BOT_TOKEN")
         self.drive = drive
 
-    def run(self):
+    def run(self, host: str, port):
 
         uvloop.install()
 
@@ -62,12 +61,13 @@ class TelegramBot(L.LightningWork):
 
         @app.on_message(filters.voice & filters.private)
         async def transcribe(client: Client, message: Message):
-            full_audio_path = await message.download(f"audio_{message.voice.file_id}.ogg")
-            audio_path = str(Path(full_audio_path).relative_to(os.getcwd()))
-            self.drive.put(audio_path)
+            full_audio_path = await message.download(f"{self.drive.root}/audio_{message.voice.file_id}.ogg",)
+            # audio_path = str(Path(full_audio_path).relative_to(os.getcwd()))
+            audio_path = Path(full_audio_path).name
+            # self.drive.put(audio_path)
             
             # send request to process audio
-            response = requests.post("http://127.0.0.1:1994/predict", json={
+            response = requests.post(f"https://{host}:{port}/predict", json={
                 "audio_path": audio_path
             }).json()
             
@@ -75,6 +75,7 @@ class TelegramBot(L.LightningWork):
             text = f"Processato in {round(response['runtime'], 2)} secondi.\nTrascrizione:\n\n{response['text']}"
             await message.reply(text)
 
-            os.remove(full_audio_path)
+            # os.remove(full_audio_path)
+            self.drive.delete(audio_path)
 
         app.run()

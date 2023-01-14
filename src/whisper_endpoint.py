@@ -9,7 +9,7 @@ from lightning.app.utilities.app_helpers import Logger
 import whisper
 from pydantic import BaseModel
 from torch.cuda import is_available
-
+import os
 logger = Logger(__name__)
 
 
@@ -59,6 +59,8 @@ class WhisperServer(PythonServer):
 
         if text is None or len(text) < 1:
             text = "Il file audio è vuoto o troppo breve. Nessun risultato"
+
+        os.remove(request.audio_path)
 
         return {
             "text": text.strip(),

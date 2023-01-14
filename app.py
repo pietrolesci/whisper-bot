@@ -16,8 +16,13 @@ class Flow(L.LightningFlow):
         self.whisper_endpoint = WhisperServer(drive=self.drive, cloud_compute=L.CloudCompute("cpu-small"))
 
     def run(self):
-        self.telegram_bot.run()
         self.whisper_endpoint.run()
+        self.telegram_bot.run(host=self.whisper_endpoint.host, port=self.whisper_endpoint.port)
+
+    # def configure_layout(self):
+    #     return [
+    #         dict(name="whisper_endpoint", content=self.whisper_endpoint)
+    #     ]
 
 
 app = L.LightningApp(Flow(), log_level="info", flow_cloud_compute=L.CloudCompute("cpu-small"))

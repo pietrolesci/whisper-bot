@@ -3,3 +3,4 @@ scripts/
 whisper.cpp/
 .env
 whisper_model/
+.shared
