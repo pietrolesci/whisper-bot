@@ -11,7 +11,7 @@ logger = Logger(__name__)
 class Flow(L.LightningFlow):
     def __init__(self):
         super().__init__()
-        self.drive = Drive(id="lit://whisper", allow_duplicates=False, component_name="telegram_bot")
+        self.drive = Drive(id="lit://bot", allow_duplicates=False, component_name="telegram_bot")
         self.telegram_bot = TelegramBot(drive=self.drive, cloud_compute=L.CloudCompute("cpu-small"))
         self.whisper_endpoint = WhisperServer(drive=self.drive, cloud_compute=L.CloudCompute("cpu-medium"))
 
