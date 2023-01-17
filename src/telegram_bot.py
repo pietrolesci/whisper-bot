@@ -46,20 +46,21 @@ class TelegramBot(L.LightningWork):
         async def transcribe(client: Client, message: Message):
 
             # save audio to shared drive
-            audio_path = await message.download(f"audio_{message.voice.file_id}.ogg")
+            absolute_audio_path = await message.download(f"audio_{message.voice.file_id}.ogg")
+            audio_path = Path(absolute_audio_path).relative_to(os.getcwd())
             self._drive.put(audio_path)
 
             # send request to process audio
             response = requests.post(
-                f"{endpoint_url}/predict", json={"audio_path": audio_path}
-            )
+                f"{endpoint_url}/predict", json={"audio_path": str(audio_path)}
+            ).json()
 
             # send response
             text = f"Processato in {round(response['runtime'], 2)} secondi.\nTrascrizione:\n\n{response['text']}"
             await message.reply(text)
 
             # clean up
-            os.remove(audio_path)
             self._drive.delete(audio_path)
+            os.remove(absolute_audio_path)
 
         app.run()

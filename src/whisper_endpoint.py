@@ -64,8 +64,8 @@ class WhisperServer(PythonServer):
         if text is None or len(text) < 1:
             text = "Il file audio è vuoto o troppo breve. Nessun risultato"
 
-        # clean up
-        os.remove(request.audio_path)
+        # # clean up
+        # os.remove(request.audio_path)
 
         return {
             "text": text.strip(),
