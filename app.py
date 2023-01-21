@@ -12,8 +12,8 @@ class Flow(L.LightningFlow):
     def __init__(self):
         super().__init__()
         self.drive = Drive(id="lit://bot", allow_duplicates=False, component_name="telegram_bot")
-        self.telegram_bot = TelegramBot(drive=self.drive, cloud_compute=L.CloudCompute("cpu-small"))
-        self.whisper_endpoint = WhisperServer(drive=self.drive, cloud_compute=L.CloudCompute("cpu-medium"))
+        self.telegram_bot = TelegramBot(drive=self.drive, cloud_compute=L.CloudCompute("default"))
+        self.whisper_endpoint = WhisperServer(drive=self.drive, cloud_compute=L.CloudCompute("cpu-medium", idle_timeout=10))
 
     def run(self):
         self.whisper_endpoint.run()

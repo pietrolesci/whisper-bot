@@ -16,7 +16,7 @@ logger = Logger(__name__)
 
 
 DRIVE_SOURCE_FILE_TIMEOUT_SECONDS = 10
-DEFAULT_MODEL_SIZE = "tiny"
+DEFAULT_MODEL_SIZE = "small"
 
 
 class AudioFile(BaseModel):

@@ -5,7 +5,6 @@ from typing import Optional
 import lightning as L
 import requests
 import uvloop
-from lightning.app.frontend import StaticWebFrontend
 from lightning.app.storage import Drive
 from lightning.app.utilities.app_helpers import Logger
 from pyrogram import Client, filters
@@ -60,7 +59,8 @@ class TelegramBot(L.LightningWork):
             await message.reply(text)
 
             # clean up
-            self._drive.delete(audio_path)
+            # FIXME: drive cannot delete at the moment
+            # self._drive.delete(audio_path)
             os.remove(absolute_audio_path)
 
         app.run()
