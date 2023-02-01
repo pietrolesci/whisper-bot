@@ -1,49 +1,28 @@
-from dataclasses import dataclass
-from typing import List
 import lightning as L
-from lightning.app.components import TracerPythonScript
+from lightning.app.storage import Drive
+from lightning.app.utilities.app_helpers import Logger
+
+from src.telegram_bot import TelegramBot
+from src.whisper_endpoint import WhisperServer
+from pathlib import Path
+logger = Logger(__name__)
 
 
-@dataclass
-class CustomBuildConfig(L.BuildConfig):
-    def build_commands(self) -> List[str]:
-        return [
-            "sudo apt-get update",
-            "sudo apt-get install -y ffmpeg libmagic1",
-            # "git clone https://github.com/ggerganov/whisper.cpp.git",
-            # "cd ./whisper.cpp && make small",
-            # "cd ..",
-        ]
+class Flow(L.LightningFlow):
+    def __init__(self):
+        super().__init__()
+        self.drive = Drive(id="lit://bot", allow_duplicates=False, component_name="telegram_bot")
+        self.telegram_bot = TelegramBot(drive=self.drive, cloud_compute=L.CloudCompute("default"))
+        self.whisper_endpoint = WhisperServer(drive=self.drive, cloud_compute=L.CloudCompute("cpu-medium", idle_timeout=10))
+
+    def run(self):
+        self.whisper_endpoint.run()
+        if self.whisper_endpoint.is_alive:
+            self.telegram_bot.run(endpoint_url=self.whisper_endpoint.endpoint_url)
 
 
-class SpeechRecognizerWork(TracerPythonScript):
-    def __init__(self, script_path: str, cloud_compute: L.CloudCompute) -> None:
-        super().__init__(
-            script_path=script_path,
-            parallel=True,
-            cloud_compute=cloud_compute,
-            cloud_build_config=CustomBuildConfig(requirements=[
-                "pyrogram",
-                "tgcrypto",
-                "uvloop",
-                "git+https://github.com/openai/whisper.git",
-            ]),
-            raise_exception=False,
-        )
+    # def configure_layout(self):
+    #     return {"name": "endpoint", "content": self.whisper_endpoint}
 
 
-component = SpeechRecognizerWork(script_path="run.py", cloud_compute=L.CloudCompute("cpu-medium"))
-# auto_scaled_component = AutoScaler(
-#         SpeechRecognizerWork,
-#         min_replicas=1,
-#         max_replicas=4,
-#         scale_out_interval=10,
-#         scale_in_interval=10,
-#         max_batch_size=16,  # for auto batching
-#         timeout_batching=1,  # for auto batching
-#         script_path="run.py", 
-#         cloud_compute=L.CloudCompute("cpu-small"),
-#     )
-
-
-app = L.LightningApp(component, flow_cloud_compute=L.CloudCompute("default"))
+app = L.LightningApp(Flow(), log_level="info", flow_cloud_compute=L.CloudCompute("cpu-small"))

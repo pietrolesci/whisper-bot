@@ -127,6 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-*.session
+*.session*
 whisper.cpp
-whisper
+whisper_model
