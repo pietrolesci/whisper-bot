@@ -45,7 +45,9 @@ class TelegramBot(L.LightningWork):
         async def transcribe(client: Client, message: Message):
 
             # save audio to shared drive
-            absolute_audio_path = await message.download(f"{os.getcwd()}/audio_{message.voice.file_id}.ogg")
+            absolute_audio_path = await message.download(
+                f"{os.getcwd()}/audio_{message.voice.file_id}.ogg"
+            )
             audio_path = str(Path(absolute_audio_path).relative_to(os.getcwd()))
             self._drive.put(audio_path)
 

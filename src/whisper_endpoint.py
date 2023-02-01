@@ -1,6 +1,7 @@
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional
 
 import lightning as L
@@ -10,7 +11,6 @@ from lightning.app.storage import Drive
 from lightning.app.utilities.app_helpers import Logger
 from pydantic import BaseModel
 from torch.cuda import is_available
-from pathlib import Path
 
 logger = Logger(__name__)
 
@@ -21,6 +21,7 @@ DEFAULT_MODEL_SIZE = "small"
 
 class AudioFile(BaseModel):
     audio_path: str
+
 
 class Response(BaseModel):
     text: str
@@ -36,30 +37,38 @@ class CustomBuildConfig(L.BuildConfig):
         ]
 
 
-
 class WhisperServer(PythonServer):
     def __init__(self, drive: Drive, **kwargs):
         super().__init__(
             input_type=AudioFile,
             output_type=Response,
             port=1994,
-            cloud_build_config=CustomBuildConfig(requirements=["git+https://github.com/openai/whisper.git"]),
+            cloud_build_config=CustomBuildConfig(
+                requirements=["git+https://github.com/openai/whisper.git"]
+            ),
             **kwargs,
         )
         self._drive = drive
 
     def setup(self):
         self._device = "cuda:0" if is_available() else "cpu"
-        self._model = whisper.load_model(DEFAULT_MODEL_SIZE, in_memory=True, device=self._device, download_root="whisper_model")
-    
+        self._model = whisper.load_model(
+            DEFAULT_MODEL_SIZE,
+            in_memory=True,
+            device=self._device,
+            download_root="whisper_model",
+        )
+
     def predict(self, request: AudioFile) -> Response:
-        
+
         # get file from shared drive
         self._drive.get(request.audio_path, timeout=DRIVE_SOURCE_FILE_TIMEOUT_SECONDS)
-        
+
         # run inference
         start_time = time.perf_counter()
-        text = whisper.transcribe(self._model, audio=request.audio_path, language="it", fp16=False)["text"]        
+        text = whisper.transcribe(
+            self._model, audio=request.audio_path, language="it", fp16=False
+        )["text"]
         end_time = time.perf_counter()
 
         if text is None or len(text) < 1:
