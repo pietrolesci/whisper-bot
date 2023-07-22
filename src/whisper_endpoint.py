@@ -8,11 +8,8 @@ import lightning as L
 import whisper
 from lightning.app.components.serve import PythonServer
 from lightning.app.storage import Drive
-from lightning.app.utilities.app_helpers import Logger
 from pydantic import BaseModel
 from torch.cuda import is_available
-
-logger = Logger(__name__)
 
 
 DRIVE_SOURCE_FILE_TIMEOUT_SECONDS = 10
@@ -50,7 +47,7 @@ class WhisperServer(PythonServer):
         )
         self._drive = drive
 
-    def setup(self):
+    def setup(self) -> None:
         self._device = "cuda:0" if is_available() else "cpu"
         self._model = whisper.load_model(
             DEFAULT_MODEL_SIZE,
@@ -64,24 +61,24 @@ class WhisperServer(PythonServer):
         # get file from shared drive
         self._drive.get(request.audio_path, timeout=DRIVE_SOURCE_FILE_TIMEOUT_SECONDS)
 
-        # run inference
+        # run inference with Whisper model
         start_time = time.perf_counter()
         text = whisper.transcribe(
-            self._model, audio=request.audio_path, language="it", fp16=False
+            self._model, audio=request.audio_path, language="en", fp16=False
         )["text"]
         end_time = time.perf_counter()
 
         if text is None or len(text) < 1:
-            text = "Il file audio è vuoto o troppo breve. Nessun risultato"
+            text = "The audio file is too short or empty. No results."
 
-        # clean up
+        # remove audio from local drive
         if Path(request.audio_path).exists():
             os.remove(request.audio_path)
 
-        return {
-            "text": text.strip(),
-            "runtime": end_time - start_time,
-        }
+        return Response(
+            text=text.strip(),
+            runtime=end_time - start_time,
+        )
 
     @property
     def endpoint_url(self) -> Optional[str]:

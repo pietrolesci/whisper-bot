@@ -60,9 +60,7 @@ class TelegramBot(L.LightningWork):
             text = f"Processato in {round(response['runtime'], 2)} secondi.\nTrascrizione:\n\n{response['text']}"
             await message.reply(text)
 
-            # clean up
-            # FIXME: drive cannot delete at the moment
-            # self._drive.delete(audio_path)
-            os.remove(absolute_audio_path)
+            # clean up shared drive
+            self._drive.delete(audio_path)
 
         app.run()

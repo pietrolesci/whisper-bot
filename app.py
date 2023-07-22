@@ -9,7 +9,7 @@ logger = Logger(__name__)
 
 
 class Flow(L.LightningFlow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.drive = Drive(
             id="lit://bot", allow_duplicates=False, component_name="telegram_bot"
@@ -26,9 +26,6 @@ class Flow(L.LightningFlow):
         self.whisper_endpoint.run()
         if self.whisper_endpoint.is_alive:
             self.telegram_bot.run(endpoint_url=self.whisper_endpoint.endpoint_url)
-
-    # def configure_layout(self):
-    #     return {"name": "endpoint", "content": self.whisper_endpoint}
 
 
 app = L.LightningApp(
